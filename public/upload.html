@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+  <title>PVKS Transcription Upload</title>
+
+  <style>
+    :root {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1f1f1f;
+      background: #f4f4f2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    main {
+      width: min(680px, 100%);
+      background: #ffffff;
+      border: 1px solid #deded8;
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.08);
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #d25b31;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 46px);
+      line-height: 1.05;
+    }
+
+    .intro {
+      margin: 18px 0 28px;
+      color: #64645f;
+      line-height: 1.6;
+    }
+
+    .drop-zone {
+      display: block;
+      border: 2px dashed #bebeb7;
+      border-radius: 16px;
+      padding: 34px 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragging {
+      border-color: #d25b31;
+      background: #fff8f4;
+    }
+
+    .drop-zone strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone span {
+      color: #6d6d67;
+      font-size: 14px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-info {
+      display: none;
+      margin-top: 22px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f5f5f2;
+    }
+
+    .file-info.visible {
+      display: block;
+    }
+
+    .file-name {
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .file-size {
+      margin-top: 5px;
+      color: #6d6d67;
+      font-size: 14px;
+    }
+
+    .progress-container {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .progress-container.visible {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    progress {
+      width: 100%;
+      height: 16px;
+      border: 0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    progress::-webkit-progress-bar {
+      background: #e8e8e3;
+    }
+
+    progress::-webkit-progress-value {
+      background: #d25b31;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      background: #191919;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      opacity: 0.88;
+    }
+
+    button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .status {
+      display: none;
+      margin-top: 22px;
+      padding: 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+    }
+
+    .status.visible {
+      display: block;
+    }
+
+    .status.success {
+      background: #edf8ef;
+      color: #245f30;
+    }
+
+    .status.error {
+      background: #fff0ee;
+      color: #8a291f;
+    }
+
+    .meta {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #e6e6e0;
+      color: #76766f;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    code {
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <p class="eyebrow">PVKS Transcription Tool</p>
+
+    <h1>Envie seu áudio</h1>
+
+    <p class="intro">
+      Selecione o arquivo indicado pelo agente. O envio será feito
+      diretamente para o ambiente seguro de transcrição da PVKS.
+      Não feche esta página enquanto o upload estiver em andamento.
+    </p>
+
+    <label
+      id="dropZone"
+      class="drop-zone"
+      for="fileInput"
+    >
+      <strong>Arraste o áudio ou clique para selecionar</strong>
+      <span>MP3, M4A, MP4, WAV, FLAC, OGG ou WEBM</span>
+    </label>
+
+    <input
+      id="fileInput"
+      type="file"
+      accept=".mp3,.m4a,.mp4,.wav,.flac,.ogg,.webm,audio/*"
+    >
+
+    <section id="fileInfo" class="file-info">
+      <div id="fileName" class="file-name"></div>
+      <div id="fileSize" class="file-size"></div>
+    </section>
+
+    <section
+      id="progressContainer"
+      class="progress-container"
+    >
+      <div class="progress-header">
+        <span id="progressLabel">Enviando...</span>
+        <strong id="progressPercent">0%</strong>
+      </div>
+
+      <progress
+        id="progressBar"
+        value="0"
+        max="100"
+      ></progress>
+    </section>
+
+    <button id="uploadButton" disabled>
+      Enviar áudio
+    </button>
+
+    <section id="statusBox" class="status"></section>
+
+    <div class="meta">
+      <div>
+        ID da transcrição:
+        <code id="transcriptionId">não informado</code>
+      </div>
+      <div>
+        A sessão é temporária e só pode receber um arquivo.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(
+      window.location.hash.slice(1)
+    );
+
+    const uploadUrl = params.get("upload_url");
+    const transcriptionId =
+      params.get("transcription_id") || "";
+    const expectedFilename =
+      params.get("filename") || "";
+    const expectedSize = Number(
+      params.get("file_size") || 0
+    );
+    const expectedContentType =
+      params.get("content_type") || "";
+
+    const fileInput =
+      document.getElementById("fileInput");
+    const dropZone =
+      document.getElementById("dropZone");
+    const fileInfo =
+      document.getElementById("fileInfo");
+    const fileName =
+      document.getElementById("fileName");
+    const fileSize =
+      document.getElementById("fileSize");
+    const uploadButton =
+      document.getElementById("uploadButton");
+    const progressContainer =
+      document.getElementById("progressContainer");
+    const progressBar =
+      document.getElementById("progressBar");
+    const progressPercent =
+      document.getElementById("progressPercent");
+    const progressLabel =
+      document.getElementById("progressLabel");
+    const statusBox =
+      document.getElementById("statusBox");
+    const transcriptionIdBox =
+      document.getElementById("transcriptionId");
+
+    transcriptionIdBox.textContent =
+      transcriptionId || "não informado";
+
+    let selectedFile = null;
+
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        return "0 bytes";
+      }
+
+      const units = [
+        "bytes",
+        "KB",
+        "MB",
+        "GB",
+      ];
+
+      const index = Math.min(
+        Math.floor(Math.log(bytes) / Math.log(1024)),
+        units.length - 1
+      );
+
+      const value =
+        bytes / Math.pow(1024, index);
+
+      return `${value.toFixed(
+        index === 0 ? 0 : 2
+      )} ${units[index]}`;
+    }
+
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className =
+        `status visible ${type}`;
+    }
+
+    function resetStatus() {
+      statusBox.textContent = "";
+      statusBox.className = "status";
+    }
+
+    function selectFile(file) {
+      resetStatus();
+
+      if (!file) {
+        selectedFile = null;
+        fileInfo.classList.remove("visible");
+        uploadButton.disabled = true;
+        return;
+      }
+
+      const allowedExtensions = [
+        "mp3",
+        "m4a",
+        "mp4",
+        "wav",
+        "flac",
+        "ogg",
+        "webm",
+      ];
+
+      const extension =
+        file.name.split(".").pop()?.toLowerCase();
+
+      if (!extension ||
+          !allowedExtensions.includes(extension)) {
+        showStatus(
+          "Formato não permitido. Selecione um arquivo de áudio compatível.",
+          "error"
+        );
+        uploadButton.disabled = true;
+        return;
+      }
+
+      if (
+        expectedFilename &&
+        file.name !== expectedFilename
+      ) {
+        showStatus(
+          `O arquivo selecionado se chama "${file.name}", mas a sessão foi criada para "${expectedFilename}". Gere uma nova sessão para este arquivo.`,
+          "error"
+        );
+        uploadButton.disabled = true;
+        return;
+      }
+
+      if (
+        expectedSize > 0 &&
+        file.size !== expectedSize
+      ) {
+        showStatus(
+          `O tamanho do arquivo não corresponde à sessão. Esperado: ${formatBytes(expectedSize)}. Selecionado: ${formatBytes(file.size)}.`,
+          "error"
+        );
+        uploadButton.disabled = true;
+        return;
+      }
+
+      selectedFile = file;
+      fileName.textContent = file.name;
+      fileSize.textContent =
+        `${formatBytes(file.size)} · ${file.type || "tipo não informado"}`;
+
+      fileInfo.classList.add("visible");
+      uploadButton.disabled = !uploadUrl;
+    }
+
+    fileInput.addEventListener("change", () => {
+      selectFile(fileInput.files?.[0]);
+    });
+
+    dropZone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      dropZone.classList.add("dragging");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("dragging");
+    });
+
+    dropZone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("dragging");
+
+      const file = event.dataTransfer?.files?.[0];
+
+      if (file) {
+        selectFile(file);
+      }
+    });
+
+    uploadButton.addEventListener("click", () => {
+      if (!uploadUrl) {
+        showStatus(
+          "Esta sessão não possui uma URL de upload válida. Volte ao agente e gere uma nova sessão.",
+          "error"
+        );
+        return;
+      }
+
+      if (!selectedFile) {
+        showStatus(
+          "Selecione um arquivo antes de iniciar o envio.",
+          "error"
+        );
+        return;
+      }
+
+      uploadButton.disabled = true;
+      fileInput.disabled = true;
+      progressContainer.classList.add("visible");
+      progressBar.value = 0;
+      progressPercent.textContent = "0%";
+      progressLabel.textContent = "Enviando áudio...";
+      resetStatus();
+
+      const request = new XMLHttpRequest();
+
+      request.open("PUT", uploadUrl, true);
+
+      request.setRequestHeader(
+        "Content-Type",
+        expectedContentType ||
+          selectedFile.type ||
+          "application/octet-stream"
+      );
+
+      request.setRequestHeader(
+        "Content-Range",
+        `bytes 0-${selectedFile.size - 1}/${selectedFile.size}`
+      );
+
+      request.upload.addEventListener(
+        "progress",
+        (event) => {
+          if (!event.lengthComputable) {
+            return;
+          }
+
+          const percentage = Math.round(
+            (event.loaded / event.total) * 100
+          );
+
+          progressBar.value = percentage;
+          progressPercent.textContent =
+            `${percentage}%`;
+        }
+      );
+
+      request.addEventListener("load", () => {
+        if (
+          request.status === 200 ||
+          request.status === 201
+        ) {
+          progressBar.value = 100;
+          progressPercent.textContent = "100%";
+          progressLabel.textContent =
+            "Upload concluído";
+
+          showStatus(
+            `Áudio enviado com sucesso. Volte ao agente e informe: "upload concluído". ID: ${transcriptionId}`,
+            "success"
+          );
+
+          return;
+        }
+
+        showStatus(
+          `O upload não foi concluído. Código HTTP ${request.status}. Gere uma nova sessão e tente novamente.`,
+          "error"
+        );
+
+        uploadButton.disabled = false;
+        fileInput.disabled = false;
+      });
+
+      request.addEventListener("error", () => {
+        showStatus(
+          "Falha de rede ou bloqueio de CORS durante o upload. Gere uma nova sessão e tente novamente.",
+          "error"
+        );
+
+        uploadButton.disabled = false;
+        fileInput.disabled = false;
+      });
+
+      request.addEventListener("abort", () => {
+        showStatus(
+          "O upload foi interrompido.",
+          "error"
+        );
+
+        uploadButton.disabled = false;
+        fileInput.disabled = false;
+      });
+
+      request.send(selectedFile);
+    });
+
+    if (!uploadUrl) {
+      showStatus(
+        "Link de upload inválido ou incompleto. Gere uma nova sessão pelo agente.",
+        "error"
+      );
+    }
+  </script>
+</body>
+</html>

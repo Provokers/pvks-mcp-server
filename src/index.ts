@@ -12,6 +12,8 @@ const SUPABASE_FUNCTIONS_URL_ENV =
   process.env.SUPABASE_FUNCTIONS_URL;
 const SUPABASE_API_KEY_ENV =
   process.env.SUPABASE_API_KEY;
+const PUBLIC_BASE_URL_ENV =
+  process.env.PUBLIC_BASE_URL;
 
 if (!MCP_API_KEY_ENV) {
   throw new Error(
@@ -37,6 +39,12 @@ const SUPABASE_API_KEY: string =
 
 const functionsBaseUrl =
   SUPABASE_FUNCTIONS_URL_ENV.replace(/\/+$/, "");
+
+const publicBaseUrl =
+  (
+    PUBLIC_BASE_URL_ENV ||
+    `http://localhost:${PORT}`
+  ).replace(/\/+$/, "");
 
 async function callSupabaseFunction(
   functionName: string,
@@ -171,7 +179,39 @@ function createMcpServer() {
           },
         );
 
-        return toolResult(data);
+        const uploadData = data as {
+          transcription_id?: string;
+          upload_url?: string;
+        };
+
+        if (
+          !uploadData.transcription_id ||
+          !uploadData.upload_url
+        ) {
+          return toolResult(data);
+        }
+
+        const fragment = new URLSearchParams({
+          upload_url:
+            uploadData.upload_url,
+          transcription_id:
+            uploadData.transcription_id,
+          filename,
+          content_type,
+          file_size:
+            String(file_size),
+        });
+
+        const uploadPageUrl =
+          `${publicBaseUrl}/upload#${fragment.toString()}`;
+
+        return toolResult({
+          ...uploadData,
+          upload_page_url:
+            uploadPageUrl,
+          instructions:
+            "Abra upload_page_url, selecione o arquivo e aguarde 100%. Nao abra upload_url diretamente.",
+        });
       } catch (error) {
         return toolError(error);
       }
@@ -294,6 +334,19 @@ function createMcpServer() {
 const app = express();
 
 app.use(express.json());
+
+app.use(
+  express.static("public"),
+);
+
+app.get("/upload", (_req, res) => {
+  res.sendFile(
+    "upload.html",
+    {
+      root: "public",
+    },
+  );
+});
 
 app.get("/", (_req, res) => {
   res.status(200).json({
