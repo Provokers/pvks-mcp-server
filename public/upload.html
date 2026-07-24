@@ -611,6 +611,11 @@
       </div>
 
       <div
+        id="estimatedTime"
+        class="estimated-time"
+      ></div>
+
+      <div
         id="statusMessage"
         class="status-message"
         role="status"
@@ -666,6 +671,7 @@
       document.getElementById("totalAmount");
 
     let selectedFile = null;
+    let processingStartedAt = null;
 
     transcriptionIdElement.textContent =
       transcriptionId || "Não informado";
@@ -844,8 +850,72 @@
         return 100;
       }
 
-      return Math.floor(safeValue / 5) * 5;
+      return Math.round(safeValue);
     }
+
+    function formatTime(seconds) {
+
+      if (
+        !Number.isFinite(seconds) ||
+        seconds < 0
+      ) {
+        return "--";
+      }
+
+      const minutes =
+        Math.floor(seconds / 60);
+
+      const remainingSeconds =
+        Math.floor(seconds % 60);
+
+      if (minutes === 0) {
+        return `${remainingSeconds}s`;
+      }
+
+      return `${minutes}min ${remainingSeconds}s`;
+    }
+
+
+    function updateEstimatedTime(
+      percentage
+    ) {
+
+      if (
+        !processingStartedAt ||
+        percentage <= 0
+      ) {
+        return;
+      }
+
+
+      const elapsed =
+        (Date.now() - processingStartedAt) / 1000;
+
+
+      const estimatedTotal =
+        elapsed / (percentage / 100);
+
+
+      const remaining =
+        estimatedTotal - elapsed;
+
+
+      const element =
+        document.getElementById(
+          "estimatedTime"
+        );
+
+
+      if (element) {
+
+        element.textContent =
+          `Tempo estimado restante: ${formatTime(remaining)}`;
+
+      }
+
+    }
+
+
 
     function updateProcessingProgress(
       percentage,
@@ -928,8 +998,12 @@
         }
 
         updateProcessingProgress(
-          Math.max(5, percentage),
+          percentage,
           "Processamento no Google Cloud"
+        );
+
+        updateEstimatedTime(
+          percentage
         );
 
         statusPollingTimer = setTimeout(
@@ -950,6 +1024,9 @@
       progressLabel.textContent =
         "Preparando a transcrição";
       lastProcessingPercentage = 5;
+
+      processingStartedAt =
+        Date.now();
 
       const response = await fetch(
         "/api/upload-complete",
