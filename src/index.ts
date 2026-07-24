@@ -770,6 +770,109 @@ function createMcpServer() {
   );
 
 
+  server.tool(
+    "generate_executive_analysis",
+    "Gera uma análise executiva estratégica a partir da transcrição limpa e cria o relatório executivo.",
+    {
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe(
+          "ID UUID da transcrição.",
+        ),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+    async ({
+      transcription_id,
+    }) => {
+
+      try {
+
+
+        const analysis =
+          await callSupabaseFunction(
+            "generate-executive-analysis",
+            {
+              transcription_id,
+            },
+          );
+
+
+
+        const document =
+          await callSupabaseFunction(
+            "generate-transcription-document",
+            {
+              transcription_id,
+              document_type:
+                "executive",
+            },
+          );
+
+
+
+        const analysisResult =
+          analysis as {
+            status?: string;
+            [key:string]: unknown;
+          };
+
+
+        const documentResult =
+          document as {
+            document_url?: string;
+            url?: string;
+            [key:string]: unknown;
+          };
+
+
+
+        return toolResult({
+
+          success:
+            true,
+
+
+          transcription_id,
+
+
+          status:
+            analysisResult.status ||
+            "completed",
+
+
+          analysis_ready:
+            true,
+
+
+          document_url:
+            documentResult.document_url ||
+            documentResult.url ||
+            "",
+
+
+          message:
+            "Análise executiva gerada e documento executivo criado com sucesso.",
+
+        });
+
+
+
+      } catch(error) {
+
+        return toolError(error);
+
+      }
+
+    },
+  );
+
+
   return server;
 }
 
