@@ -876,12 +876,17 @@
             return;
           }
 
-          const percentage = Math.min(
+          const rawPercentage = Math.min(
             100,
             Math.round(
               (event.loaded / event.total) * 100
             )
           );
+
+          const percentage =
+            rawPercentage >= 100
+              ? 100
+              : Math.floor(rawPercentage / 5) * 5;
 
           progressPercent.textContent =
             `${percentage}%`;
@@ -908,8 +913,21 @@
           progressBar.style.width = "100%";
           progressLabel.textContent = "Upload concluído";
 
+          try {
+            localStorage.setItem(
+              `pvks-upload-${transcriptionId}`,
+              JSON.stringify({
+                transcription_id: transcriptionId,
+                filename: expectedFilename,
+                completed_at: new Date().toISOString()
+              })
+            );
+          } catch (_error) {
+            // O upload continua valido mesmo sem localStorage.
+          }
+
           setStatusMessage(
-            `Arquivo enviado com sucesso. Volte ao agente e informe “upload concluído”. ID: ${transcriptionId}`,
+            "Arquivo enviado com sucesso. Volte ao agente e escreva “upload concluído”.",
             "success"
           );
 

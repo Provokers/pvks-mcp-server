@@ -289,7 +289,7 @@ function createMcpServer() {
           link_label:
             "Clique aqui para enviar o audio",
           instructions:
-            "Apresente somente upload_page_url como link Markdown usando o texto Clique aqui para enviar o audio. Nao mostre upload_url nem exponha a URL completa. Oriente o usuario a selecionar o arquivo, aguardar 100% e responder upload concluido.",
+            "Preserve exatamente transcription_id durante toda a conversa. Nunca tente reconstruir, ler de imagem, corrigir ou pedir que o usuario redigite esse identificador. Apresente somente upload_page_url como link Markdown usando o texto Clique aqui para enviar o audio. Nao mostre upload_url nem exponha a URL completa. Oriente o usuario a selecionar o arquivo, aguardar 100% e responder upload concluido. Quando ele responder upload concluido, use exatamente o transcription_id retornado nesta chamada.",
         });
       } catch (error) {
         return toolError(error);
