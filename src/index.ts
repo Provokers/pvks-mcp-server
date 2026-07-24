@@ -483,7 +483,25 @@ function createMcpServer() {
             },
           );
 
-        return toolResult(data);
+        const documentData = data as {
+          url?: string;
+          file?: string;
+          word_count?: number;
+          [key: string]: unknown;
+        };
+
+        return toolResult({
+          success: true,
+          document_type,
+          document_url:
+            documentData.url || "",
+          file_name:
+            documentData.file || "",
+          word_count:
+            documentData.word_count || null,
+          status:
+            "generated",
+        });
 
       } catch (error) {
         return toolError(error);
