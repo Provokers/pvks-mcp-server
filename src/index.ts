@@ -510,6 +510,85 @@ function createMcpServer() {
   );
 
 
+  server.tool(
+    "clean_transcription",
+    "Executa a limpeza inteligente de uma transcrição, identifica falantes, organiza o texto e gera o documento Word limpo.",
+    {
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe(
+          "ID UUID da transcrição que será limpa.",
+        ),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+    async ({
+      transcription_id,
+    }) => {
+      try {
+
+        const data =
+          await callSupabaseFunction(
+            "clean-transcription",
+            {
+              transcription_id,
+            },
+          );
+
+        const result =
+          data as {
+            document?: {
+              document_url?: string;
+              file_name?: string;
+            };
+            document_url?: string;
+            file_name?: string;
+            status?: string;
+            [key: string]: unknown;
+          };
+
+
+        return toolResult({
+
+          success:
+            true,
+
+          transcription_id,
+
+          status:
+            result.status ||
+            "completed",
+
+          document_url:
+            result.document?.document_url ||
+            result.document_url ||
+            "",
+
+          file_name:
+            result.document?.file_name ||
+            result.file_name ||
+            "",
+
+          message:
+            "Transcrição limpa e documento Word gerado com sucesso.",
+
+        });
+
+
+      } catch (error) {
+
+        return toolError(error);
+
+      }
+    },
+  );
+
+
   return server;
 }
 
