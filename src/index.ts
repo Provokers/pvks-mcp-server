@@ -1,6 +1,5 @@
 import "dotenv/config";
 import express from "express";
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -281,7 +280,8 @@ app.all("/mcp", async (req, res) => {
   const server = createMcpServer();
 
   const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
   });
 
   res.on("close", async () => {
