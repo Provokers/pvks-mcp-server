@@ -440,6 +440,58 @@ function createMcpServer() {
     },
   );
 
+
+  server.tool(
+    "generate_transcription_document",
+    "Gera um documento Word da transcricao.",
+    {
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe(
+          "ID da transcricao concluida.",
+        ),
+
+      document_type: z
+        .enum([
+          "raw",
+          "cleaned",
+          "executive",
+        ])
+        .default("raw")
+        .describe(
+          "Tipo de documento: raw, cleaned ou executive.",
+        ),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+    async ({
+      transcription_id,
+      document_type,
+    }) => {
+      try {
+        const data =
+          await callSupabaseFunction(
+            "generate-transcription-document",
+            {
+              transcription_id,
+              document_type,
+            },
+          );
+
+        return toolResult(data);
+
+      } catch (error) {
+        return toolError(error);
+      }
+    },
+  );
+
+
   return server;
 }
 
