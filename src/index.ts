@@ -1,100 +1,112 @@
 import "dotenv/config";
-
-import express, {
-  type NextFunction,
-  type Request,
-  type Response,
-} from "express";
-
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-
-import {
-  StreamableHTTPServerTransport,
-} from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-
+import express from "express";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
-const port = Number(process.env.PORT ?? 3000);
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from 
+"@modelcontextprotocol/sdk/server/streamableHttp.js";
 
-const mcpApiKey = process.env.MCP_API_KEY;
-const supabaseFunctionsUrl = process.env.SUPABASE_FUNCTIONS_URL;
-const supabaseApiKey = process.env.SUPABASE_API_KEY;
+const PORT = Number(process.env.PORT || 3000);
 
-if (!mcpApiKey) {
-  throw new Error("MCP_API_KEY não configurada no arquivo .env.");
-}
+const MCP_API_KEY_ENV = process.env.MCP_API_KEY;
+const SUPABASE_FUNCTIONS_URL_ENV =
+  process.env.SUPABASE_FUNCTIONS_URL;
+const SUPABASE_API_KEY_ENV =
+  process.env.SUPABASE_API_KEY;
 
-if (!supabaseFunctionsUrl) {
+if (!MCP_API_KEY_ENV) {
   throw new Error(
-    "SUPABASE_FUNCTIONS_URL não configurada no arquivo .env.",
+    "A variavel MCP_API_KEY nao esta configurada.",
   );
 }
 
-if (!supabaseApiKey) {
+if (!SUPABASE_FUNCTIONS_URL_ENV) {
   throw new Error(
-    "SUPABASE_API_KEY não configurada no arquivo .env.",
+    "A variavel SUPABASE_FUNCTIONS_URL nao esta configurada.",
   );
 }
 
-/**
- * Executa uma chamada para uma Edge Function do Supabase.
- */
-async function callSupabase(
-  path: string,
-  options: RequestInit = {},
+if (!SUPABASE_API_KEY_ENV) {
+  throw new Error(
+    "A variavel SUPABASE_API_KEY nao esta configurada.",
+  );
+}
+
+const MCP_API_KEY: string = MCP_API_KEY_ENV;
+const SUPABASE_API_KEY: string =
+  SUPABASE_API_KEY_ENV;
+
+const functionsBaseUrl =
+  SUPABASE_FUNCTIONS_URL_ENV.replace(/\/+$/, "");
+
+async function callSupabaseFunction(
+  functionName: string,
+  body: Record<string, unknown>,
 ): Promise<unknown> {
-  const url = `${supabaseFunctionsUrl}${path}`;
+  const url = `${functionsBaseUrl}/${functionName}`;
 
   const response = await fetch(url, {
-    ...options,
+    method: "POST",
     headers: {
-      Authorization: `Bearer ${supabaseApiKey}`,
+      Authorization: `Bearer ${SUPABASE_API_KEY}`,
+      apikey: SUPABASE_API_KEY,
       "Content-Type": "application/json",
-      ...(options.headers ?? {}),
     },
+    body: JSON.stringify(body),
   });
 
-  const rawBody = await response.text();
+  const responseText = await response.text();
 
-  let parsedBody: unknown;
+  let responseData: unknown;
 
   try {
-    parsedBody = rawBody ? JSON.parse(rawBody) : {};
+    responseData = responseText ? JSON.parse(responseText) : {};
   } catch {
-    parsedBody = {
-      message: rawBody,
+    responseData = {
+      raw_response: responseText,
     };
   }
 
   if (!response.ok) {
     throw new Error(
       `Supabase retornou HTTP ${response.status}: ${
-        JSON.stringify(parsedBody)
+        typeof responseData === "object"
+          ? JSON.stringify(responseData)
+          : String(responseData)
       }`,
     );
   }
 
-  return parsedBody;
+  return responseData;
 }
 
-/**
- * Converte a resposta da API para o formato esperado pelo MCP.
- */
-function createToolResult(data: unknown) {
+function toolResult(data: unknown) {
   return {
     content: [
       {
         type: "text" as const,
-        text: JSON.stringify(data),
+        text: JSON.stringify(data, null, 2),
       },
     ],
   };
 }
 
-/**
- * Cria uma instância do servidor MCP e registra as ferramentas.
- */
-function createMcpServer(): McpServer {
+function toolError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return {
+    isError: true,
+    content: [
+      {
+        type: "text" as const,
+        text: message,
+      },
+    ],
+  };
+}
+
+function createMcpServer() {
   const server = new McpServer({
     name: "PVKS Transcription Tool",
     version: "1.0.0",
@@ -102,172 +114,192 @@ function createMcpServer(): McpServer {
 
   server.tool(
     "create_transcription_upload",
-    "Cria uma URL temporária para upload direto de um arquivo de áudio.",
+    "Cria uma sessao de upload de audio.",
     {
-      filename: z.string().min(1),
-      content_type: z.string().min(1),
-      file_size: z.number().int().positive(),
-      project_name: z.string().optional(),
-    },
-    async (input) => {
-      const data = await callSupabase("/create-upload-url", {
-        method: "POST",
-        body: JSON.stringify(input),
-      });
+      filename: z
+        .string()
+        .min(1)
+        .describe("Nome original do arquivo, incluindo extensão."),
 
-      return createToolResult(data);
+      content_type: z
+        .string()
+        .min(1)
+        .describe(
+          "Tipo MIME do áudio, por exemplo audio/mpeg ou audio/mp4.",
+        ),
+
+      file_size: z
+        .number()
+        .int()
+        .positive()
+        .describe("Tamanho exato do arquivo em bytes."),
+
+      project_name: z
+        .string()
+        .optional()
+        .describe("Nome opcional do projeto de pesquisa."),
+    },
+    async ({
+      filename,
+      content_type,
+      file_size,
+      project_name,
+    }) => {
+      try {
+        const data = await callSupabaseFunction(
+          "create-upload-url",
+          {
+            filename,
+            content_type,
+            file_size,
+            project_name,
+          },
+        );
+
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
     },
   );
 
   server.tool(
     "start_transcription",
-    "Inicia a transcrição de um áudio que já foi enviado ao Google Cloud Storage.",
+    "Inicia a transcricao do audio enviado.",
     {
-      transcription_id: z.string().min(1),
-      language_code: z.string().default("pt-BR"),
-      enable_diarization: z.boolean().default(true),
-      min_speaker_count: z.number().int().min(1).default(2),
-      max_speaker_count: z.number().int().min(1).default(10),
-    },
-    async (input) => {
-      const data = await callSupabase("/start-transcription", {
-        method: "POST",
-        body: JSON.stringify(input),
-      });
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe("ID UUID da transcrição."),
 
-      return createToolResult(data);
+      language_code: z
+        .string()
+        .default("pt-BR")
+        .describe("Código do idioma, por exemplo pt-BR."),
+    },
+    async ({
+      transcription_id,
+      language_code,
+    }) => {
+      try {
+        const data = await callSupabaseFunction(
+          "start-transcription",
+          {
+            transcription_id,
+            language_code,
+          },
+        );
+
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
     },
   );
 
   server.tool(
     "get_transcription_status",
-    "Consulta o status e o progresso de uma transcrição.",
+    "Consulta o andamento de uma transcrição.",
     {
-      transcription_id: z.string().min(1),
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe("ID UUID da transcrição."),
     },
     async ({ transcription_id }) => {
-      const encodedId = encodeURIComponent(transcription_id);
+      try {
+        const data = await callSupabaseFunction(
+          "transcription-status",
+          {
+            transcription_id,
+          },
+        );
 
-      const data = await callSupabase(
-        `/transcription-status/${encodedId}`,
-        {
-          method: "GET",
-        },
-      );
-
-      return createToolResult(data);
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
     },
   );
 
   server.tool(
     "get_transcription_result",
-    "Recupera o texto ou os segmentos de uma transcrição concluída.",
+    "Recupera o texto final de uma transcrição concluída.",
     {
-      transcription_id: z.string().min(1),
-      format: z.enum(["text", "segments"]).default("text"),
-      offset: z.number().int().min(0).default(0),
-      limit: z.number().int().min(1).max(500).default(200),
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe("ID UUID da transcrição."),
     },
-    async ({
-      transcription_id,
-      format,
-      offset,
-      limit,
-    }) => {
-      const encodedId = encodeURIComponent(transcription_id);
+    async ({ transcription_id }) => {
+      try {
+        const data = await callSupabaseFunction(
+          "transcription-result",
+          {
+            transcription_id,
+          },
+        );
 
-      const query = new URLSearchParams({
-        format,
-        offset: String(offset),
-        limit: String(limit),
-      });
-
-      const data = await callSupabase(
-        `/transcription-result/${encodedId}?${query.toString()}`,
-        {
-          method: "GET",
-        },
-      );
-
-      return createToolResult(data);
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
     },
   );
 
   return server;
 }
 
-/**
- * Valida a chave enviada pelo ChatGPT.
- */
-function authenticate(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
-  const authorization = req.header("authorization");
-
-  if (authorization !== `Bearer ${mcpApiKey}`) {
-    res.status(401).json({
-      error: "Unauthorized",
-    });
-
-    return;
-  }
-
-  next();
-}
-
 const app = express();
 
-app.use(
-  express.json({
-    limit: "1mb",
-  }),
-);
+app.use(express.json());
 
-/**
- * Endpoint simples para verificar se o servidor está funcionando.
- */
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    name: "PVKS Transcription Tool",
+    status: "online",
+    endpoint: "/mcp",
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "ok",
-    service: "pvks-mcp-server",
-    version: "1.0.0",
   });
 });
 
-/**
- * Endpoint MCP utilizado pelo ChatGPT.
- */
-app.post("/mcp", authenticate, async (req, res) => {
+app.all("/mcp", async (req, res) => {
+  const authorization = req.headers.authorization;
+
+  if (authorization !== `Bearer ${MCP_API_KEY}`) {
+    res.status(401).json({
+      error: "Unauthorized",
+    });
+    return;
+  }
+
   const server = createMcpServer();
 
   const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true,
+    sessionIdGenerator: () => randomUUID(),
   });
 
-  try {
-    await server.connect(transport);
+  res.on("close", async () => {
+    await transport.close();
+    await server.close();
+  });
 
-    await transport.handleRequest(
-      req,
-      res,
-      req.body,
-    );
-  } catch (error) {
-    console.error("Erro no servidor MCP:", error);
+  await server.connect(transport);
 
-    if (!res.headersSent) {
-      res.status(500).json({
-        error: "MCP server error",
-      });
-    }
-  }
+  await transport.handleRequest(
+    req,
+    res,
+    req.body,
+  );
 });
 
-app.listen(port, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(
-    `PVKS MCP Server ativo em http://localhost:${port}`,
+    `PVKS MCP Server executando na porta ${PORT}`,
   );
 });
