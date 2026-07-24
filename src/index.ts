@@ -367,7 +367,40 @@ function createMcpServer() {
           },
         );
 
-        return toolResult(data);
+        const statusData = data as {
+          status?: string;
+          progress?: number;
+          progress_percent?: number;
+          google_progress_percent?: number;
+          [key: string]: unknown;
+        };
+
+        const rawProgress = Number(
+          statusData.google_progress_percent ??
+          statusData.progress_percent ??
+          statusData.progress ??
+          0,
+        );
+
+        const safeProgress = Number.isFinite(rawProgress)
+          ? Math.max(0, Math.min(100, rawProgress))
+          : 0;
+
+        const roundedProgress =
+          safeProgress >= 100
+            ? 100
+            : Math.floor(safeProgress / 5) * 5;
+
+        return toolResult({
+          ...statusData,
+          progress_percent: roundedProgress,
+          progress_label:
+            roundedProgress >= 100
+              ? "Transcrição concluída"
+              : `Processamento no Google Cloud: ${roundedProgress}%`,
+          instructions:
+            "Informe progress_percent ao usuário somente em múltiplos de 5. Preserve o transcription_id original. Nunca leia ou reconstrua o ID a partir de imagens.",
+        });
       } catch (error) {
         return toolError(error);
       }
