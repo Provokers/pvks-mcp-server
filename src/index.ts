@@ -643,32 +643,6 @@ app.post("/api/upload-complete", async (req, res) => {
   }
 
   try {
-    const currentStatus =
-      await callSupabaseFunction(
-        "transcription-status",
-        {
-          transcription_id:
-            transcriptionId,
-        },
-      );
-
-    const statusData =
-      currentStatus as {
-        status?: string;
-        progress?: number;
-        progress_percent?: number;
-      };
-
-    if (
-      statusData.status === "processing" ||
-      statusData.status === "completed"
-    ) {
-      res.status(200).json({
-        already_started: true,
-        ...statusData,
-      });
-      return;
-    }
 
     const startResult =
       await callSupabaseFunction(
@@ -676,29 +650,39 @@ app.post("/api/upload-complete", async (req, res) => {
         {
           transcription_id:
             transcriptionId,
-          language_code: "pt-BR",
+          language_code:
+            "pt-BR",
         },
       );
+
 
     res.status(200).json({
       started: true,
       transcription_id:
         transcriptionId,
-      result: startResult,
+      result:
+        startResult,
     });
+
+
   } catch (error) {
+
     const message =
       error instanceof Error
         ? error.message
         : String(error);
 
+
     res.status(500).json({
       error:
         "Nao foi possivel iniciar a transcricao automaticamente.",
-      details: message,
+      details:
+        message,
     });
+
   }
 });
+
 
 app.get(
   "/api/transcription-status/:transcriptionId",
