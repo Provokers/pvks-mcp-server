@@ -589,6 +589,89 @@ function createMcpServer() {
   );
 
 
+  server.tool(
+    "get_transcription_progress",
+    "Consulta o progresso atual de uma transcrição em processamento.",
+    {
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe(
+          "ID UUID da transcrição.",
+        ),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    async ({
+      transcription_id,
+    }) => {
+
+      try {
+
+        const data =
+          await callSupabaseFunction(
+            "transcription-status",
+            {
+              transcription_id,
+            },
+          );
+
+
+        const statusData =
+          data as {
+            status?: string;
+            progress?: number;
+            progress_percent?: number;
+            error_message?: string;
+            [key: string]: unknown;
+          };
+
+
+        const progress =
+          statusData.progress_percent ??
+          statusData.progress ??
+          0;
+
+
+        return toolResult({
+
+          transcription_id,
+
+          status:
+            statusData.status ||
+            "unknown",
+
+          progress_percent:
+            progress,
+
+          message:
+            statusData.status === "completed"
+              ? "Transcrição concluída."
+              : statusData.status === "processing"
+              ? `Transcrição em processamento: ${progress}%`
+              : "Aguardando processamento.",
+
+          error_message:
+            statusData.error_message ||
+            null,
+
+        });
+
+
+      } catch (error) {
+
+        return toolError(error);
+
+      }
+
+    },
+  );
+
+
   return server;
 }
 
