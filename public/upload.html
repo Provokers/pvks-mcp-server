@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
@@ -15,7 +14,6 @@
       --background: #efede7;
       --surface: #ffffff;
       --surface-soft: #f7f6f3;
-      --surface-warm: #fff8f2;
       --border: #dfddd7;
       --border-strong: #cccac4;
       --text: #202020;
@@ -31,7 +29,6 @@
       --shadow: 0 10px 32px rgba(45, 40, 30, 0.06);
       --radius-large: 18px;
       --radius-medium: 13px;
-      --radius-small: 9px;
     }
 
     * {
@@ -159,7 +156,7 @@
       padding: 23px 20px 20px;
     }
 
-    .journey-panel {
+    .status-panel {
       min-height: 620px;
       padding: 23px 20px 20px;
       display: flex;
@@ -175,36 +172,14 @@
       text-transform: uppercase;
     }
 
-    .intro-card {
-      margin-bottom: 17px;
-      padding: 15px 16px;
-      border: 1px solid #f1dfd0;
-      border-radius: var(--radius-medium);
-      background: var(--surface-warm);
-    }
-
-    .intro-card-title {
-      margin: 0;
-      font-size: 13px;
-      font-weight: 760;
-      line-height: 1.4;
-    }
-
-    .intro-card-text {
-      margin: 7px 0 0;
-      color: var(--text-secondary);
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
     .drop-zone {
-      min-height: 154px;
+      min-height: 178px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 9px;
-      padding: 25px 22px;
+      padding: 26px 22px;
       border: 2px dashed var(--border-strong);
       border-radius: 16px;
       background: #fff;
@@ -224,8 +199,8 @@
     }
 
     .upload-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       color: #c8c7c3;
       transition: color 160ms ease;
     }
@@ -385,11 +360,6 @@
       line-height: 1.55;
     }
 
-    .privacy-icon {
-      flex: 0 0 auto;
-      margin-top: 1px;
-    }
-
     .status-message {
       display: none;
       margin-top: 16px;
@@ -413,7 +383,7 @@
       color: var(--error);
     }
 
-    .journey-header {
+    .status-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -421,7 +391,7 @@
       margin-bottom: 16px;
     }
 
-    .journey-header .section-label {
+    .status-header .section-label {
       margin: 0;
     }
 
@@ -437,119 +407,43 @@
       font-weight: 750;
     }
 
-    .journey-body {
+    .status-body {
       flex: 1;
       min-height: 540px;
-      padding: 30px;
-      border-radius: 15px;
-      background: var(--surface-soft);
-    }
-
-    .journey-intro {
-      max-width: 600px;
-    }
-
-    .journey-kicker {
-      margin: 0;
-      color: var(--orange);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-    }
-
-    .journey-title {
-      max-width: 550px;
-      margin: 10px 0 0;
-      font-size: clamp(25px, 3vw, 39px);
-      font-weight: 770;
-      letter-spacing: -0.035em;
-      line-height: 1.08;
-    }
-
-    .journey-description {
-      max-width: 580px;
-      margin: 15px 0 0;
-      color: var(--text-secondary);
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 30px;
-    }
-
-    .step {
-      min-height: 155px;
-      padding: 16px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-medium);
-      background: var(--surface);
-    }
-
-    .step-number {
-      width: 28px;
-      height: 28px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: var(--orange-soft);
-      color: var(--orange);
-      font-size: 11px;
-      font-weight: 850;
-    }
-
-    .step-title {
-      margin: 14px 0 0;
-      font-size: 13px;
-      font-weight: 750;
-      line-height: 1.4;
-    }
-
-    .step-text {
-      margin: 7px 0 0;
-      color: var(--text-secondary);
-      font-size: 11px;
-      line-height: 1.55;
-    }
-
-    .important-card {
-      margin-top: 14px;
-      padding: 16px 18px;
-      border-left: 3px solid var(--orange);
-      border-radius: 0 var(--radius-medium) var(--radius-medium) 0;
-      background: var(--surface-warm);
-    }
-
-    .important-title {
-      margin: 0;
-      font-size: 12px;
-      font-weight: 760;
-    }
-
-    .important-text {
-      margin: 6px 0 0;
-      color: var(--text-secondary);
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .progress-state,
-    .success-state,
-    .error-state {
-      min-height: 480px;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 34px;
+      border-radius: 15px;
+      background: var(--surface-soft);
       text-align: center;
     }
 
-    .progress-content,
-    .result-content {
+    .state {
       width: min(500px, 100%);
+    }
+
+    .state-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 17px;
+      color: #d0cfcb;
+    }
+
+    .state-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 770;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+    }
+
+    .state-description {
+      max-width: 440px;
+      margin: 12px auto 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.7;
     }
 
     .progress-value {
@@ -561,7 +455,7 @@
     }
 
     .progress-label {
-      margin-top: 5px;
+      margin-top: 6px;
       color: var(--text-secondary);
       font-size: 13px;
       font-weight: 650;
@@ -592,27 +486,6 @@
       font-size: 10px;
     }
 
-    .result-icon {
-      width: 55px;
-      height: 55px;
-      margin: 0 auto 17px;
-    }
-
-    .result-title {
-      margin: 0;
-      font-size: 23px;
-      font-weight: 770;
-      letter-spacing: -0.025em;
-    }
-
-    .result-description {
-      max-width: 440px;
-      margin: 11px auto 0;
-      color: var(--text-secondary);
-      font-size: 12px;
-      line-height: 1.7;
-    }
-
     .return-message {
       margin-top: 20px;
       padding: 15px;
@@ -639,12 +512,12 @@
         grid-template-columns: 1fr;
       }
 
-      .journey-panel {
+      .status-panel {
         min-height: auto;
       }
 
-      .journey-body {
-        min-height: 450px;
+      .status-body {
+        min-height: 420px;
       }
     }
 
@@ -676,20 +549,12 @@
       }
 
       .upload-panel,
-      .journey-panel {
+      .status-panel {
         padding: 18px 14px 15px;
       }
 
-      .journey-body {
-        padding: 23px 17px;
-      }
-
-      .steps {
-        grid-template-columns: 1fr;
-      }
-
-      .step {
-        min-height: auto;
+      .status-body {
+        padding: 24px 17px;
       }
     }
   </style>
@@ -713,7 +578,7 @@
           </h1>
 
           <p class="brand-subtitle">
-            Etapa segura de upload do PVKS Transcription Tool.
+            Envie o arquivo indicado pelo agente PVKS.
           </p>
         </div>
       </div>
@@ -727,19 +592,8 @@
     <main class="layout">
       <section class="panel upload-panel">
         <p class="section-label">
-          Arquivo da entrevista
+          Arquivo de áudio
         </p>
-
-        <div class="intro-card">
-          <h2 class="intro-card-title">
-            Envie o áudio solicitado pelo agente
-          </h2>
-
-          <p class="intro-card-text">
-            Esta sessão foi criada exclusivamente para um arquivo.
-            O nome e o tamanho serão validados antes do envio.
-          </p>
-        </div>
 
         <label
           id="dropZone"
@@ -769,11 +623,7 @@
           </svg>
 
           <span class="drop-zone-title">
-            Arraste o áudio aqui
-          </span>
-
-          <span class="drop-zone-subtitle">
-            ou clique para selecionar o arquivo
+            Arraste o áudio ou clique para selecionar
           </span>
 
           <span class="drop-zone-subtitle">
@@ -800,31 +650,25 @@
 
         <div class="session-card">
           <div class="session-header">
-            Dados da sessão
+            Sessão de transcrição
           </div>
 
           <div class="session-row">
             <div class="session-label">
-              Arquivo aguardado
+              Arquivo esperado
             </div>
 
-            <div
-              id="expectedFile"
-              class="session-value"
-            >
+            <div id="expectedFile" class="session-value">
               Não informado
             </div>
           </div>
 
           <div class="session-row">
             <div class="session-label">
-              Identificador da transcrição
+              ID da transcrição
             </div>
 
-            <div
-              id="transcriptionId"
-              class="session-value"
-            >
+            <div id="transcriptionId" class="session-value">
               Não informado
             </div>
           </div>
@@ -836,15 +680,14 @@
           type="button"
           disabled
         >
-          Enviar para transcrição
+          Enviar áudio
         </button>
 
         <div class="privacy-note">
-          <span class="privacy-icon" aria-hidden="true">◇</span>
+          <span aria-hidden="true">◇</span>
 
           <span>
-            O arquivo é enviado diretamente ao armazenamento seguro da
-            PVKS e não passa pelo servidor desta página.
+            Mantenha esta página aberta até o envio chegar a 100%.
           </span>
         </div>
 
@@ -855,10 +698,10 @@
         ></div>
       </section>
 
-      <section class="panel journey-panel">
-        <div class="journey-header">
+      <section class="panel status-panel">
+        <div class="status-header">
           <p class="section-label">
-            Como funciona
+            Status do envio
           </p>
 
           <span id="statusPill" class="status-pill">
@@ -866,191 +709,140 @@
           </span>
         </div>
 
-        <div class="journey-body">
-          <section id="initialState">
-            <div class="journey-intro">
-              <p class="journey-kicker">
-                Fluxo de transcrição PVKS
-              </p>
+        <div class="status-body">
+          <section id="initialState" class="state">
+            <svg
+              class="state-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M7 3.75h7l3.25 3.25v13.25H7V3.75Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M14 3.75V7h3.25"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M9.5 12h5M9.5 15h5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
 
-              <h2 class="journey-title">
-                Do áudio bruto ao texto pronto para análise
-              </h2>
+            <h2 class="state-title">
+              Selecione o áudio indicado pelo agente
+            </h2>
 
-              <p class="journey-description">
-                Esta página realiza somente o envio seguro do áudio.
-                Depois que o upload terminar, o agente iniciará a
-                transcrição, acompanhará o processamento e recuperará
-                o texto final.
-              </p>
+            <p class="state-description">
+              O nome e o tamanho do arquivo serão validados antes
+              de liberar o envio.
+            </p>
+          </section>
+
+          <section id="progressState" class="state hidden">
+            <p id="progressValue" class="progress-value">
+              0%
+            </p>
+
+            <div id="progressLabel" class="progress-label">
+              Preparando o envio
             </div>
 
-            <div class="steps">
-              <article class="step">
-                <div class="step-number">1</div>
-
-                <h3 class="step-title">
-                  Selecione o arquivo
-                </h3>
-
-                <p class="step-text">
-                  Escolha exatamente o áudio usado para criar esta
-                  sessão.
-                </p>
-              </article>
-
-              <article class="step">
-                <div class="step-number">2</div>
-
-                <h3 class="step-title">
-                  Aguarde o envio
-                </h3>
-
-                <p class="step-text">
-                  Mantenha a página aberta até a barra chegar a 100%.
-                </p>
-              </article>
-
-              <article class="step">
-                <div class="step-number">3</div>
-
-                <h3 class="step-title">
-                  Volte ao agente
-                </h3>
-
-                <p class="step-text">
-                  Informe “upload concluído” para começar a transcrição.
-                </p>
-              </article>
+            <div class="progress-track">
+              <div id="progressBar" class="progress-bar"></div>
             </div>
 
-            <div class="important-card">
-              <h3 class="important-title">
-                Importante para arquivos longos
-              </h3>
+            <div class="progress-meta">
+              <span id="uploadedAmount">
+                0 MB enviados
+              </span>
 
-              <p class="important-text">
-                Não feche esta página, não coloque o computador em
-                repouso e mantenha uma conexão estável durante todo o
-                upload.
-              </p>
+              <span id="totalAmount">
+                0 MB no total
+              </span>
             </div>
           </section>
 
-          <section
-            id="progressState"
-            class="progress-state hidden"
-          >
-            <div class="progress-content">
-              <p id="progressValue" class="progress-value">
-                0%
-              </p>
+          <section id="successState" class="state hidden">
+            <svg
+              class="state-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              style="color: var(--success);"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="currentColor"
+                stroke-width="1.6"
+              />
+              <path
+                d="m8 12.2 2.5 2.5 5.6-5.7"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
 
-              <div id="progressLabel" class="progress-label">
-                Preparando o envio
-              </div>
+            <h2 class="state-title">
+              Áudio enviado com sucesso
+            </h2>
 
-              <div class="progress-track">
-                <div id="progressBar" class="progress-bar"></div>
-              </div>
+            <p class="state-description">
+              O arquivo está disponível para o processamento.
+              A transcrição ainda precisa ser iniciada pelo agente.
+            </p>
 
-              <div class="progress-meta">
-                <span id="uploadedAmount">
-                  0 MB enviados
-                </span>
-
-                <span id="totalAmount">
-                  0 MB no total
-                </span>
-              </div>
+            <div class="return-message">
+              Volte ao agente PVKS e envie:
+              “upload concluído”.
             </div>
           </section>
 
-          <section
-            id="successState"
-            class="success-state hidden"
-          >
-            <div class="result-content">
-              <svg
-                class="result-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-                style="color: var(--success);"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="9"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                />
+          <section id="errorState" class="state hidden">
+            <svg
+              class="state-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              style="color: var(--error);"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="currentColor"
+                stroke-width="1.6"
+              />
+              <path
+                d="M12 7.8v5.6M12 16.6h.01"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
 
-                <path
-                  d="m8 12.2 2.5 2.5 5.6-5.7"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+            <h2 class="state-title">
+              O envio não foi concluído
+            </h2>
 
-              <h2 class="result-title">
-                Áudio enviado com sucesso
-              </h2>
-
-              <p class="result-description">
-                O arquivo já está disponível no ambiente de
-                processamento. A transcrição ainda não começou
-                automaticamente.
-              </p>
-
-              <div class="return-message">
-                Volte ao agente PVKS e envie a mensagem:
-                “upload concluído”.
-              </div>
-            </div>
-          </section>
-
-          <section
-            id="errorState"
-            class="error-state hidden"
-          >
-            <div class="result-content">
-              <svg
-                class="result-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-                style="color: var(--error);"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="9"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                />
-
-                <path
-                  d="M12 7.8v5.6M12 16.6h.01"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                />
-              </svg>
-
-              <h2 class="result-title">
-                O envio não foi concluído
-              </h2>
-
-              <p
-                id="errorDescription"
-                class="result-description"
-              >
-                Gere uma nova sessão pelo agente e tente novamente.
-              </p>
-            </div>
+            <p
+              id="errorDescription"
+              class="state-description"
+            >
+              Gere uma nova sessão pelo agente e tente novamente.
+            </p>
           </section>
         </div>
       </section>
@@ -1152,38 +944,36 @@
       statusMessage.className = "status-message";
     }
 
-    function showInitialState() {
-      initialState.classList.remove("hidden");
-      progressState.classList.add("hidden");
-      successState.classList.add("hidden");
-      errorState.classList.add("hidden");
+    function showState(name) {
+      initialState.classList.toggle(
+        "hidden",
+        name !== "initial"
+      );
+
+      progressState.classList.toggle(
+        "hidden",
+        name !== "progress"
+      );
+
+      successState.classList.toggle(
+        "hidden",
+        name !== "success"
+      );
+
+      errorState.classList.toggle(
+        "hidden",
+        name !== "error"
+      );
     }
 
-    function showProgressState() {
-      initialState.classList.add("hidden");
-      progressState.classList.remove("hidden");
-      successState.classList.add("hidden");
-      errorState.classList.add("hidden");
-    }
-
-    function showSuccessState() {
-      initialState.classList.add("hidden");
-      progressState.classList.add("hidden");
-      successState.classList.remove("hidden");
-      errorState.classList.add("hidden");
-    }
-
-    function showErrorState(message) {
-      initialState.classList.add("hidden");
-      progressState.classList.add("hidden");
-      successState.classList.add("hidden");
-      errorState.classList.remove("hidden");
+    function showError(message) {
       errorDescription.textContent = message;
+      showState("error");
     }
 
     function selectFile(file) {
       clearStatusMessage();
-      showInitialState();
+      showState("initial");
 
       if (!file) {
         selectedFile = null;
@@ -1214,12 +1004,12 @@
         uploadButton.disabled = true;
 
         setStatusMessage(
-          "Formato não permitido. Selecione um arquivo de áudio compatível.",
+          "Formato não permitido. Selecione um arquivo compatível.",
           "error"
         );
 
-        showErrorState(
-          "O formato selecionado não é compatível com o fluxo de transcrição."
+        showError(
+          "O formato selecionado não é compatível com esta sessão."
         );
 
         return;
@@ -1233,12 +1023,12 @@
         uploadButton.disabled = true;
 
         setStatusMessage(
-          `O arquivo selecionado não corresponde à sessão. Esperado: ${expectedFilename}.`,
+          `Arquivo incorreto. Esperado: ${expectedFilename}.`,
           "error"
         );
 
-        showErrorState(
-          "Selecione exatamente o mesmo arquivo usado para criar o link de upload."
+        showError(
+          "Selecione exatamente o arquivo usado para criar este link."
         );
 
         return;
@@ -1252,12 +1042,12 @@
         uploadButton.disabled = true;
 
         setStatusMessage(
-          `O tamanho não corresponde à sessão. Esperado: ${formatBytes(expectedSize)}. Selecionado: ${formatBytes(file.size)}.`,
+          `Tamanho diferente do esperado. Esperado: ${formatBytes(expectedSize)}. Selecionado: ${formatBytes(file.size)}.`,
           "error"
         );
 
-        showErrorState(
-          "O arquivo selecionado possui tamanho diferente do registrado pelo agente."
+        showError(
+          "O tamanho do arquivo não corresponde à sessão criada."
         );
 
         return;
@@ -1275,7 +1065,7 @@
       statusPill.textContent = "Arquivo validado";
 
       setStatusMessage(
-        "Arquivo validado. Clique em “Enviar para transcrição” para começar.",
+        "Arquivo validado. Clique em “Enviar áudio”.",
         "success"
       );
     }
@@ -1307,10 +1097,10 @@
     uploadButton.addEventListener("click", () => {
       if (!uploadUrl) {
         const message =
-          "Esta página não possui uma sessão válida. Gere um novo link pelo agente.";
+          "Esta página não possui uma sessão válida.";
 
         setStatusMessage(message, "error");
-        showErrorState(message);
+        showError(message);
         return;
       }
 
@@ -1330,7 +1120,7 @@
 
       progressValue.textContent = "0%";
       progressLabel.textContent =
-        "Preparando a transferência segura";
+        "Preparando a transferência";
 
       progressBar.style.width = "0%";
 
@@ -1341,7 +1131,7 @@
         `${formatBytes(selectedFile.size)} no total`;
 
       clearStatusMessage();
-      showProgressState();
+      showState("progress");
 
       const request = new XMLHttpRequest();
 
@@ -1384,8 +1174,8 @@
 
           progressLabel.textContent =
             percentage < 100
-              ? "Enviando o áudio para o ambiente PVKS"
-              : "Finalizando e validando o arquivo";
+              ? "Enviando o áudio"
+              : "Finalizando o arquivo";
         }
       );
 
@@ -1397,20 +1187,20 @@
           statusPill.textContent = "Upload concluído";
 
           setStatusMessage(
-            `Arquivo enviado com sucesso. ID da transcrição: ${transcriptionId}`,
+            `Arquivo enviado com sucesso. ID: ${transcriptionId}`,
             "success"
           );
 
-          showSuccessState();
+          showState("success");
           return;
         }
 
         const message =
-          `O armazenamento respondeu com HTTP ${request.status}. Gere uma nova sessão pelo agente.`;
+          `O armazenamento respondeu com HTTP ${request.status}. Gere uma nova sessão.`;
 
         statusPill.textContent = "Erro no envio";
         setStatusMessage(message, "error");
-        showErrorState(message);
+        showError(message);
 
         uploadButton.disabled = false;
         fileInput.disabled = false;
@@ -1419,11 +1209,11 @@
 
       request.addEventListener("error", () => {
         const message =
-          "Falha de rede ou bloqueio de CORS. Confirme sua conexão e gere uma nova sessão.";
+          "Falha de conexão ou bloqueio de CORS durante o envio.";
 
         statusPill.textContent = "Erro de conexão";
         setStatusMessage(message, "error");
-        showErrorState(message);
+        showError(message);
 
         uploadButton.disabled = false;
         fileInput.disabled = false;
@@ -1432,11 +1222,11 @@
 
       request.addEventListener("abort", () => {
         const message =
-          "O envio foi interrompido antes de chegar a 100%.";
+          "O envio foi interrompido antes da conclusão.";
 
         statusPill.textContent = "Envio interrompido";
         setStatusMessage(message, "error");
-        showErrorState(message);
+        showError(message);
 
         uploadButton.disabled = false;
         fileInput.disabled = false;
@@ -1451,7 +1241,7 @@
       statusPill.textContent = "Sessão não informada";
 
       setStatusMessage(
-        "Esta página foi aberta sem um link de sessão. Gere o upload pelo agente PVKS.",
+        "Esta página foi aberta sem uma sessão de upload. Gere um link pelo agente PVKS.",
         "error"
       );
     } else {
