@@ -151,9 +151,16 @@ function createMcpServer() {
 
       title: z
         .string()
-        .min(1)
+        .optional()
         .describe(
-          "Nome obrigatorio da transcricao, informado pelo usuario.",
+          "Nome da transcricao, informado pelo usuario.",
+        ),
+
+      project_name: z
+        .string()
+        .optional()
+        .describe(
+          "Campo de compatibilidade para o nome da transcricao.",
         ),
 
       subtitle: z
@@ -181,12 +188,15 @@ function createMcpServer() {
       content_type,
       file_size,
       title,
+      project_name,
       subtitle,
       research_context,
     }) => {
       try {
         const normalizedTitle =
-          title.trim();
+          title?.trim() ||
+          project_name?.trim() ||
+          "";
 
         const normalizedSubtitle =
           subtitle?.trim() || undefined;
