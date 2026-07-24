@@ -820,6 +820,173 @@
       }
     });
 
+    let lastProcessingPercentage = -1;
+    let statusPollingTimer = null;
+
+    function normalizeProcessingPercentage(data) {
+      const rawValue = Number(
+        data?.google_progress_percent ??
+        data?.progress_percent ??
+        data?.progress ??
+        0
+      );
+
+      if (!Number.isFinite(rawValue)) {
+        return 0;
+      }
+
+      const safeValue = Math.max(
+        0,
+        Math.min(100, rawValue)
+      );
+
+      if (safeValue >= 100) {
+        return 100;
+      }
+
+      return Math.floor(safeValue / 5) * 5;
+    }
+
+    function updateProcessingProgress(
+      percentage,
+      label = "Processamento no Google Cloud"
+    ) {
+      if (
+        percentage === lastProcessingPercentage
+      ) {
+        return;
+      }
+
+      lastProcessingPercentage = percentage;
+
+      progressSection.classList.add("visible");
+      progressPercent.textContent =
+        `${percentage}%`;
+      progressBar.style.width =
+        `${percentage}%`;
+      progressLabel.textContent = label;
+    }
+
+    async function checkTranscriptionStatus() {
+      try {
+        const response = await fetch(
+          `/api/transcription-status/${encodeURIComponent(transcriptionId)}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json"
+            }
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.details ||
+            data?.error ||
+            `HTTP ${response.status}`
+          );
+        }
+
+        const status =
+          String(data?.status || "").toLowerCase();
+
+        const percentage =
+          normalizeProcessingPercentage(data);
+
+        if (
+          status === "completed" ||
+          percentage >= 100
+        ) {
+          updateProcessingProgress(
+            100,
+            "Transcrição concluída"
+          );
+
+          setStatusMessage(
+            "Transcrição concluída com sucesso. Volte ao agente e peça para abrir o resultado.",
+            "success"
+          );
+
+          if (statusPollingTimer) {
+            clearTimeout(statusPollingTimer);
+            statusPollingTimer = null;
+          }
+
+          return;
+        }
+
+        if (
+          status === "error" ||
+          status === "failed"
+        ) {
+          throw new Error(
+            data?.error_message ||
+            "O processamento da transcrição falhou."
+          );
+        }
+
+        updateProcessingProgress(
+          Math.max(5, percentage),
+          "Processamento no Google Cloud"
+        );
+
+        statusPollingTimer = setTimeout(
+          checkTranscriptionStatus,
+          5000
+        );
+      } catch (error) {
+        setStatusMessage(
+          `Não foi possível atualizar o processamento: ${error.message}`,
+          "error"
+        );
+      }
+    }
+
+    async function startAutomaticTranscription() {
+      progressPercent.textContent = "5%";
+      progressBar.style.width = "5%";
+      progressLabel.textContent =
+        "Preparando a transcrição";
+      lastProcessingPercentage = 5;
+
+      const response = await fetch(
+        "/api/upload-complete",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify({
+            transcription_id:
+              transcriptionId
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.details ||
+          data?.error ||
+          `HTTP ${response.status}`
+        );
+      }
+
+      setStatusMessage(
+        "Upload concluído. A transcrição foi iniciada automaticamente.",
+        "success"
+      );
+
+      statusPollingTimer = setTimeout(
+        checkTranscriptionStatus,
+        2000
+      );
+    }
+
     uploadButton.addEventListener("click", () => {
       if (!uploadUrl) {
         setStatusMessage(
@@ -927,9 +1094,17 @@
           }
 
           setStatusMessage(
-            "Arquivo enviado com sucesso. Volte ao agente e escreva “upload concluído”.",
+            "Upload concluído. Iniciando o processamento da transcrição...",
             "success"
           );
+
+          startAutomaticTranscription()
+            .catch((error) => {
+              setStatusMessage(
+                `O upload foi concluído, mas não foi possível iniciar a transcrição automaticamente: ${error.message}`,
+                "error"
+              );
+            });
 
           return;
         }

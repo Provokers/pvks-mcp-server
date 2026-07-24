@@ -474,6 +474,128 @@ app.get("/health", (_req, res) => {
   });
 });
 
+app.post("/api/upload-complete", async (req, res) => {
+  const transcriptionId =
+    typeof req.body?.transcription_id === "string"
+      ? req.body.transcription_id.trim()
+      : "";
+
+  const uuidPattern =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (
+    !transcriptionId ||
+    !uuidPattern.test(transcriptionId)
+  ) {
+    res.status(400).json({
+      error: "transcription_id invalido.",
+    });
+    return;
+  }
+
+  try {
+    const currentStatus =
+      await callSupabaseFunction(
+        "transcription-status",
+        {
+          transcription_id:
+            transcriptionId,
+        },
+      );
+
+    const statusData =
+      currentStatus as {
+        status?: string;
+        progress?: number;
+        progress_percent?: number;
+      };
+
+    if (
+      statusData.status === "processing" ||
+      statusData.status === "completed"
+    ) {
+      res.status(200).json({
+        already_started: true,
+        ...statusData,
+      });
+      return;
+    }
+
+    const startResult =
+      await callSupabaseFunction(
+        "start-transcription",
+        {
+          transcription_id:
+            transcriptionId,
+          language_code: "pt-BR",
+        },
+      );
+
+    res.status(200).json({
+      started: true,
+      transcription_id:
+        transcriptionId,
+      result: startResult,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    res.status(500).json({
+      error:
+        "Nao foi possivel iniciar a transcricao automaticamente.",
+      details: message,
+    });
+  }
+});
+
+app.get(
+  "/api/transcription-status/:transcriptionId",
+  async (req, res) => {
+    const transcriptionId =
+      req.params.transcriptionId?.trim() || "";
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    if (
+      !transcriptionId ||
+      !uuidPattern.test(transcriptionId)
+    ) {
+      res.status(400).json({
+        error: "transcription_id invalido.",
+      });
+      return;
+    }
+
+    try {
+      const data =
+        await callSupabaseFunction(
+          "transcription-status",
+          {
+            transcription_id:
+              transcriptionId,
+          },
+        );
+
+      res.status(200).json(data);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : String(error);
+
+      res.status(500).json({
+        error:
+          "Nao foi possivel consultar o andamento.",
+        details: message,
+      });
+    }
+  },
+);
+
 app.all("/mcp", async (req, res) => {
   const authorization =
     req.headers.authorization;
