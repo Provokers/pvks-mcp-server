@@ -3,8 +3,7 @@ import express from "express";
 import { z } from "zod";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from 
-"@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 const PORT = Number(process.env.PORT || 3000);
 
@@ -60,7 +59,9 @@ async function callSupabaseFunction(
   let responseData: unknown;
 
   try {
-    responseData = responseText ? JSON.parse(responseText) : {};
+    responseData = responseText
+      ? JSON.parse(responseText)
+      : {};
   } catch {
     responseData = {
       raw_response: responseText,
@@ -92,7 +93,10 @@ function toolResult(data: unknown) {
 }
 
 function toolError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
 
   return {
     isError: true,
@@ -118,25 +122,37 @@ function createMcpServer() {
       filename: z
         .string()
         .min(1)
-        .describe("Nome original do arquivo, incluindo extensão."),
+        .describe(
+          "Nome original do arquivo, incluindo extensao.",
+        ),
 
       content_type: z
         .string()
         .min(1)
         .describe(
-          "Tipo MIME do áudio, por exemplo audio/mpeg ou audio/mp4.",
+          "Tipo MIME do audio, por exemplo audio/mpeg ou audio/mp4.",
         ),
 
       file_size: z
         .number()
         .int()
         .positive()
-        .describe("Tamanho exato do arquivo em bytes."),
+        .describe(
+          "Tamanho exato do arquivo em bytes.",
+        ),
 
       project_name: z
         .string()
         .optional()
-        .describe("Nome opcional do projeto de pesquisa."),
+        .describe(
+          "Nome opcional do projeto de pesquisa.",
+        ),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
     },
     async ({
       filename,
@@ -169,12 +185,22 @@ function createMcpServer() {
       transcription_id: z
         .string()
         .uuid()
-        .describe("ID UUID da transcrição."),
+        .describe(
+          "ID UUID da transcricao.",
+        ),
 
       language_code: z
         .string()
         .default("pt-BR")
-        .describe("Código do idioma, por exemplo pt-BR."),
+        .describe(
+          "Codigo do idioma, por exemplo pt-BR.",
+        ),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
     },
     async ({
       transcription_id,
@@ -198,12 +224,20 @@ function createMcpServer() {
 
   server.tool(
     "get_transcription_status",
-    "Consulta o andamento de uma transcrição.",
+    "Consulta o andamento de uma transcricao.",
     {
       transcription_id: z
         .string()
         .uuid()
-        .describe("ID UUID da transcrição."),
+        .describe(
+          "ID UUID da transcricao.",
+        ),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
     },
     async ({ transcription_id }) => {
       try {
@@ -223,12 +257,20 @@ function createMcpServer() {
 
   server.tool(
     "get_transcription_result",
-    "Recupera o texto final de uma transcrição concluída.",
+    "Recupera o texto final de uma transcricao concluida.",
     {
       transcription_id: z
         .string()
         .uuid()
-        .describe("ID UUID da transcrição."),
+        .describe(
+          "ID UUID da transcricao.",
+        ),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
     },
     async ({ transcription_id }) => {
       try {
@@ -268,9 +310,13 @@ app.get("/health", (_req, res) => {
 });
 
 app.all("/mcp", async (req, res) => {
-  const authorization = req.headers.authorization;
+  const authorization =
+    req.headers.authorization;
 
-  if (authorization !== `Bearer ${MCP_API_KEY}`) {
+  if (
+    authorization !==
+      `Bearer ${MCP_API_KEY}`
+  ) {
     res.status(401).json({
       error: "Unauthorized",
     });
@@ -279,10 +325,11 @@ app.all("/mcp", async (req, res) => {
 
   const server = createMcpServer();
 
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true,
-  });
+  const transport =
+    new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
 
   res.on("close", async () => {
     await transport.close();
