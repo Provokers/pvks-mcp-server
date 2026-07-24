@@ -209,8 +209,10 @@ function createMcpServer() {
           ...uploadData,
           upload_page_url:
             uploadPageUrl,
+          link_label:
+            "Clique aqui para enviar o audio",
           instructions:
-            "Abra upload_page_url, selecione o arquivo e aguarde 100%. Nao abra upload_url diretamente.",
+            "Apresente somente upload_page_url como link Markdown usando o texto Clique aqui para enviar o audio. Nao mostre upload_url nem exponha a URL completa. Depois, oriente o usuario a aguardar 100% e responder upload concluido.",
         });
       } catch (error) {
         return toolError(error);
