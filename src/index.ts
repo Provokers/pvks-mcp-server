@@ -672,6 +672,104 @@ function createMcpServer() {
   );
 
 
+  server.tool(
+    "get_cleaning_progress",
+    "Consulta o progresso da limpeza inteligente de uma transcrição.",
+    {
+      transcription_id: z
+        .string()
+        .uuid()
+        .describe(
+          "ID UUID da transcrição em limpeza.",
+        ),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    async ({
+      transcription_id,
+    }) => {
+
+      try {
+
+        const data =
+          await callSupabaseFunction(
+            "cleaning-status",
+            {
+              transcription_id,
+            },
+          );
+
+
+        const result =
+          data as {
+            cleaning_status?: string;
+            cleaning_chunks_total?: number;
+            cleaning_chunks_completed?: number;
+            cleaned_document_url?: string;
+            [key: string]: unknown;
+          };
+
+
+        const total =
+          result.cleaning_chunks_total || 0;
+
+
+        const completed =
+          result.cleaning_chunks_completed || 0;
+
+
+        const progress =
+          total > 0
+            ? Math.round(
+                (completed / total) * 100,
+              )
+            : 0;
+
+
+
+        return toolResult({
+
+          transcription_id,
+
+          status:
+            result.cleaning_status ||
+            "unknown",
+
+          progress_percent:
+            progress,
+
+          chunks_completed:
+            completed,
+
+          chunks_total:
+            total,
+
+          document_url:
+            result.cleaned_document_url ||
+            "",
+
+          message:
+            result.cleaning_status === "completed"
+              ? "Limpeza concluída."
+              : `Processamento da limpeza: ${completed}/${total} blocos concluídos.`,
+
+        });
+
+
+      } catch(error) {
+
+        return toolError(error);
+
+      }
+
+    },
+  );
+
+
   return server;
 }
 
