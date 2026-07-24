@@ -125,7 +125,7 @@ function createMcpServer() {
 
   server.tool(
     "create_transcription_upload",
-    "Cria uma sessao de upload de audio.",
+    "Cria uma sessao de upload de audio. O nome da transcricao deve ser solicitado ao usuario antes de chamar esta ferramenta.",
     {
       filename: z
         .string()
@@ -149,11 +149,25 @@ function createMcpServer() {
           "Tamanho exato do arquivo em bytes.",
         ),
 
-      project_name: z
+      title: z
+        .string()
+        .min(1)
+        .describe(
+          "Nome obrigatorio da transcricao, informado pelo usuario.",
+        ),
+
+      subtitle: z
         .string()
         .optional()
         .describe(
-          "Nome opcional do projeto de pesquisa.",
+          "Subtitulo opcional da transcricao.",
+        ),
+
+      research_context: z
+        .string()
+        .optional()
+        .describe(
+          "Contexto opcional da pesquisa ou entrevista. Ajuda na identificacao do moderador e dos participantes.",
         ),
     },
     {
@@ -166,22 +180,49 @@ function createMcpServer() {
       filename,
       content_type,
       file_size,
-      project_name,
+      title,
+      subtitle,
+      research_context,
     }) => {
       try {
+        const normalizedTitle =
+          title.trim();
+
+        const normalizedSubtitle =
+          subtitle?.trim() || undefined;
+
+        const normalizedResearchContext =
+          research_context?.trim() || undefined;
+
+        if (!normalizedTitle) {
+          throw new Error(
+            "O nome da transcricao e obrigatorio antes de criar a sessao de upload.",
+          );
+        }
+
         const data = await callSupabaseFunction(
           "create-upload-url",
           {
             filename,
             content_type,
             file_size,
-            project_name,
+            project_name:
+              normalizedTitle,
+            title:
+              normalizedTitle,
+            subtitle:
+              normalizedSubtitle,
+            research_context:
+              normalizedResearchContext,
           },
         );
 
         const uploadData = data as {
           transcription_id?: string;
           upload_url?: string;
+          title?: string;
+          subtitle?: string | null;
+          research_context?: string | null;
         };
 
         if (
@@ -200,19 +241,45 @@ function createMcpServer() {
           content_type,
           file_size:
             String(file_size),
+          title:
+            uploadData.title ||
+            normalizedTitle,
         });
+
+        if (
+          uploadData.subtitle ||
+          normalizedSubtitle
+        ) {
+          fragment.set(
+            "subtitle",
+            uploadData.subtitle ||
+              normalizedSubtitle ||
+              "",
+          );
+        }
 
         const uploadPageUrl =
           `${publicBaseUrl}/upload#${fragment.toString()}`;
 
         return toolResult({
           ...uploadData,
+          title:
+            uploadData.title ||
+            normalizedTitle,
+          subtitle:
+            uploadData.subtitle ??
+            normalizedSubtitle ??
+            null,
+          research_context:
+            uploadData.research_context ??
+            normalizedResearchContext ??
+            null,
           upload_page_url:
             uploadPageUrl,
           link_label:
             "Clique aqui para enviar o audio",
           instructions:
-            "Apresente somente upload_page_url como link Markdown usando o texto Clique aqui para enviar o audio. Nao mostre upload_url nem exponha a URL completa. Depois, oriente o usuario a aguardar 100% e responder upload concluido.",
+            "Apresente somente upload_page_url como link Markdown usando o texto Clique aqui para enviar o audio. Nao mostre upload_url nem exponha a URL completa. Oriente o usuario a selecionar o arquivo, aguardar 100% e responder upload concluido.",
         });
       } catch (error) {
         return toolError(error);
